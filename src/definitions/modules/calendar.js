@@ -53,6 +53,7 @@
           eventNamespace = '.' + namespace,
           moduleNamespace = 'module-' + namespace,
 
+          $window = $(window),
           $module = $(this),
           $input = $module.find(selector.input),
           $container = $module.find(selector.popup),
@@ -63,6 +64,7 @@
 
           isTouch,
           isTouchDown = false,
+          scrolled = false,
           focusDateUsedForRange = false,
           module
           ;
@@ -369,6 +371,7 @@
 
           bind: {
             events: function () {
+              $window.on('scroll' + eventNamespace, module.event.scroll);
               $container.on('mousedown' + eventNamespace, module.event.mousedown);
               $container.on('touchstart' + eventNamespace, module.event.mousedown);
               $container.on('mouseup' + eventNamespace, module.event.mouseup);
@@ -388,6 +391,7 @@
 
           unbind: {
             events: function () {
+              $window.off(eventNamespace);
               $container.off(eventNamespace);
               if ($input.length) {
                 $input.off(eventNamespace);
@@ -396,6 +400,9 @@
           },
 
           event: {
+            scroll: function(event) {
+              scrolled = true;
+            },
             mouseover: function (event) {
               var target = $(event.target);
               var date = target.data(metadata.date);
@@ -409,6 +416,7 @@
                 //prevent the mousedown on the calendar causing the input to lose focus
                 event.preventDefault();
               }
+              scrolled = false;
               isTouchDown = event.type.indexOf('touch') >= 0;
               var target = $(event.target);
               var date = target.data(metadata.date);
@@ -422,6 +430,7 @@
               event.preventDefault();
               event.stopPropagation();
               isTouchDown = false;
+              if(scrolled) return; // don't do anything if the window is scrolled
               var target = $(event.target);
               var parent = target.parent();
               if (parent.data(metadata.date) || parent.data(metadata.focusDate) || parent.data(metadata.mode)) {
